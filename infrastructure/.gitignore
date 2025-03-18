@@ -1,0 +1,30 @@
+# CDK output directories
+cdk.out/
+.cdk.staging/
+cdk.context.json
+
+# Dependency directories
+node_modules/
+
+# TypeScript compiled files
+*.js
+*.d.ts
+!jest.config.js
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+
+# Test coverage
+coverage/

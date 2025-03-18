@@ -1,0 +1,13 @@
+{
+  "RequestType": "Create",
+  "ServiceToken": "arn:aws:lambda:us-west-2:365469329695:function:OpenSearchRagAppStack-SetupTenantSetupFunctionF5E0-qDc3aAOwcO5T",
+  "ResponseURL": "https://example.com/response",
+  "StackId": "arn:aws:cloudformation:us-west-2:365469329695:stack/OpenSearchRagAppStack/abcdef",
+  "RequestId": "debug-request-id",
+  "LogicalResourceId": "TenantSetupResource",
+  "ResourceType": "Custom::TenantSetup",
+  "ResourceProperties": {
+    "ServiceToken": "arn:aws:lambda:us-west-2:365469329695:function:OpenSearchRagAppStack-SetupTenantSetupFunctionF5E0-qDc3aAOwcO5T",
+    "BEDROCK_ACCESS_ROLE": "arn:aws:iam::365469329695:role/OpenSearchRagAppStack-SetupBedrockFullAccessRole2E0-Owsalg0HO5OP"
+  }
+}

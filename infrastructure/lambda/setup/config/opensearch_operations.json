@@ -1,0 +1,139 @@
+{
+    "ml_plugin": {
+        "path": "/_cluster/settings",
+        "method": "PUT",
+        "payload": {
+            "persistent": {
+                "plugins.ml_commons.only_run_on_ml_node": "false"
+            }
+        }
+    },
+    "connector": {
+        "path": "/_plugins/_ml/connectors/_create",
+        "method": "POST",
+        "payload": {
+            "name": "Bedrock Connector: embedding",
+            "description": "The connector to bedrock Titan embedding model",
+            "version": 1,
+            "protocol": "aws_sigv4",
+            "actions": [
+                {
+                    "action_type": "predict",
+                    "method": "POST",
+                    "headers": {
+                        "content-type": "application/json"
+                    },
+                    "url": "https://bedrock-runtime.us-west-2.amazonaws.com/model/amazon.titan-embed-text-v2:0/invoke",
+                    "request_body": "{ \"inputText\": \"${parameters.inputText}\" }",
+                    "pre_process_function": "StringBuilder builder = new StringBuilder();\nbuilder.append(\"\\\"\");\nString first = params.text_docs[0];\nbuilder.append(first);\nbuilder.append(\"\\\"\");\ndef parameters = \"{\" +\"\\\"inputText\\\":\" + builder + \"}\";\nreturn  \"{\" +\"\\\"parameters\\\":\" + parameters + \"}\";",
+                    "post_process_function": "def name = \"sentence_embedding\";\ndef dataType = \"FLOAT32\";\nif (params.embedding == null || params.embedding.length == 0) {\n    return params.message;\n}\ndef shape = [params.embedding.length];\ndef json = \"{\" +\n         \"\\\"name\\\":\\\"\" + name + \"\\\",\" +\n         \"\\\"data_type\\\":\\\"\" + dataType + \"\\\",\" +\n         \"\\\"shape\\\":\" + shape + \",\" +\n         \"\\\"data\\\":\" + params.embedding +\n         \"}\";\nreturn json;"
+                }
+            ]
+        },
+        "response_key": "connector_id"
+    },
+    "model_group": {
+        "path": "/_plugins/_ml/model_groups/_register",
+        "method": "POST",
+        "payload": {
+            "name": "remote_model_group",
+            "description": "Remote model group for Bedrock"
+        },
+        "response_key": "model_group_id"
+    },
+    "model_register": {
+        "path": "/_plugins/_ml/models/_register",
+        "method": "POST",
+        "payload": {
+            "name": "Bedrock embedding model",
+            "function_name": "remote",
+            "description": "Bedrock Titan embedding model"
+        },
+        "response_key": "task_id"
+    },
+    "get_model_id": {
+        "path": "/_plugins/_ml/tasks/{task_id}",
+        "method": "GET",
+        "response_key": "model_id"
+    },
+    "model_deploy": {
+        "path": "/_plugins/_ml/models/{model_id}/_deploy",
+        "method": "POST"
+    },
+    "pipeline": {
+        "path": "/_ingest/pipeline/{pipeline_name}",
+        "method": "PUT",
+        "payload": {
+            "description": "text embedding pipeline",
+            "processors": [
+                {
+                    "text_chunking": {
+                        "algorithm": {
+                            "fixed_token_length": {
+                                "token_limit": 500,
+                                "overlap_rate": 0.2,
+                                "tokenizer": "standard"
+                            }
+                        },
+                        "field_map": {"body": "body_chunk"}
+                    }
+                },
+                {
+                    "text_embedding": {
+                        "field_map": {
+                            "body_chunk": "embedding"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "update_jwt_config": {
+        "path": "/_plugins/_security/api/jwt",
+        "method": "PUT"
+    },
+    "create_knn_index": {
+        "path": "/{index_name}",
+        "method": "PUT",
+        "payload": {
+            "mappings": {
+                "properties": {
+                    "body": {
+                        "type": "keyword"
+                    },
+                    "body_chunk": {
+                        "type": "text"
+                    },
+                    "embedding": {
+                        "type": "nested",
+                        "properties": {"knn": {"type": "knn_vector", "dimension": 1024}}
+                    },
+                    "tenant_id": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "settings": {
+                "index": {
+                    "knn.space_type": "cosinesimil",
+                    "default_pipeline": "ingest-pipeline-using-bedrock-embedding-model",
+                    "knn": "true"
+                }
+            }
+        }
+    },
+    "create_role": {
+        "path": "/_plugins/_security/api/roles/{role_name}",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    },
+    "create_role_mapping": {
+        "path": "/_plugins/_security/api/rolesmapping/{role_name}",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
+}

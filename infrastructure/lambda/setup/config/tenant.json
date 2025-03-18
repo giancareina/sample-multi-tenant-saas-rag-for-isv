@@ -1,0 +1,18 @@
+{
+    "tenant-a": {
+        "domain": "A",
+        "index": "tenant-a-index"
+    },
+    "tenant-b": {
+        "domain": "B",
+        "index": "tenant-b-index"
+    },
+    "tenant-c": {
+        "domain": "B",
+        "index": "tenant-cd-shared-index"
+    },
+    "tenant-d": {
+        "domain": "B",
+        "index": "tenant-cd-shared-index"
+    }
+}
