@@ -13,7 +13,7 @@
   "devDependencies": {
     "@types/jest": "29.5.4",
     "@types/node": "20.5.9",
-    "aws-cdk": "2.176.0",
+    "aws-cdk": "2.178.2",
     "dotenv": "16.4.7",
     "jest": "29.6.4",
     "ts-jest": "29.1.1",
@@ -23,7 +23,7 @@
   "dependencies": {
     "@aws-cdk/aws-lambda-python-alpha": "2.170.0-alpha.0",
     "@aws/pdk": "0.25.11",
-    "aws-cdk-lib": "2.170.0",
+    "aws-cdk-lib": "2.177.0",
     "cdk-nag": "2.31.0",
     "constructs": "10.4.2",
     "fs": "0.0.1-security",
