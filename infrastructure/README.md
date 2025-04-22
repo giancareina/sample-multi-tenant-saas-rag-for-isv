@@ -29,6 +29,7 @@ The application is built using AWS CDK and consists of several layers:
 - AWS CLI configured with appropriate credentials
 - AWS CDK installed (v2.170.0 or later)
 - Docker installed and running (latest version, required for Python Lambda function deployment)
+- Amazon OpenSearch Service service-linked role (see below)
 
 ### Installation
 
@@ -40,13 +41,31 @@ npm install
 
 Note: We recommend using `npm install` instead of `npm ci` due to dependency issues with the `@aws/pdk` package. The `@aws/pdk` package is required for security checks but causes compatibility issues with `npm ci`. This is related to [aws/aws-pdk#902](https://github.com/aws/aws-pdk/issues/902) issue.
 
-2. Deploy the application:
+2. Check for Amazon OpenSearch Service service-linked role:
+
+Before deploying, ensure that the Amazon OpenSearch Service service-linked role exists in your AWS account. If you have never created a VPC domain or direct query data source through the AWS Management Console, this role might not exist.
+
+To check if the role exists, run:
+
+```bash
+aws iam get-role --role-name AWSServiceRoleForAmazonOpenSearchService
+```
+
+If the role doesn't exist, create it manually:
+
+```bash
+aws iam create-service-linked-role --aws-service-name opensearchservice.amazonaws.com
+```
+
+For more information, see the [Amazon OpenSearch Service Developer Guide](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr-aos.html#create-slr).
+
+3. Deploy the application:
 
 ```bash
 npm run cdk deploy
 ```
 
-3. After deployment, note the output values that will be needed for the frontend configuration:
+4. After deployment, note the output values that will be needed for the frontend configuration:
    - API Gateway endpoint
    - Cognito User Pool ID
    - Cognito User Pool Client ID

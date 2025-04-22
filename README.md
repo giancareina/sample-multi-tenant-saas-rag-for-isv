@@ -21,6 +21,7 @@ This solution consists of the following components:
 - Document upload and management
 - Natural language document search
 - Chat interface for interactive search
+- Multi-tenant data isolation
 
 ## Directory Structure
 
@@ -38,6 +39,7 @@ This solution consists of the following components:
 - [AWS CDK](https://aws.amazon.com/cdk/) (v2.170.0 or later)
 - [Docker](https://www.docker.com/) (latest version, installed and running, required for Python Lambda deployment)
 - AWS account with appropriate IAM permissions
+- Amazon OpenSearch Service service-linked role (see note below)
 
 ## Quick Start
 
@@ -61,6 +63,24 @@ Make and edit the `.env` file with the values based on your environment:
 CORS_ALLOWED_ORIGIN=http://localhost:5173
 DEMO_USER_PASSWORD=Password1234!
 ```
+
+#### Amazon OpenSearch Service Service-Linked Role
+
+Before deploying, ensure that the Amazon OpenSearch Service service-linked role exists in your AWS account. If you have never created a VPC domain or direct query data source through the AWS Management Console, this role might not exist.
+
+To check if the role exists, run:
+
+```bash
+aws iam get-role --role-name AWSServiceRoleForAmazonOpenSearchService
+```
+
+If the role doesn't exist, create it manually:
+
+```bash
+aws iam create-service-linked-role --aws-service-name opensearchservice.amazonaws.com
+```
+
+For more information, see the [Amazon OpenSearch Service Developer Guide](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr-aos.html#create-slr).
 
 ```bash
 npm install
@@ -106,6 +126,25 @@ This sample application implements the following security best practices:
 - Enforced HTTPS communication
 - IAM policies based on the principle of least privilege
 - OpenSearch deployment within a VPC
+
+> **Note:** This is a test solution with `selfSignUpEnabled = true` in Amazon Cognito. For production environments, consider disabling self-signup and implementing additional security controls.
+
+## Multi-Tenant Sample Documents
+
+The `sample-docs` directory contains four sets of documents with different topics for each tenant:
+
+- **tenant-a**: Documents related to topic A
+- **tenant-b**: Documents related to topic B
+- **tenant-c**: Documents related to topic C
+- **tenant-d**: Documents related to topic D
+
+These sample documents can be used by each tenant user to upload from the frontend. Once uploaded, users can:
+
+1. Ask questions about documents they've uploaded through the RAG chat interface
+2. Try asking questions about documents uploaded by other tenants
+3. Verify that only documents from their own tenant are referenced in responses
+
+This demonstrates the multi-tenant data isolation feature, ensuring that each tenant can only access their own documents, even when using similar queries across tenants.
 
 ## Disclaimer
 

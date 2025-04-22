@@ -53,7 +53,7 @@ export class SetupConstruct extends Construct {
 
         // Lambda function for tenant setup
         const tenantSetupFunction = new lambda_python.PythonFunction(this, 'TenantSetupFunction', {
-            runtime: lambda.Runtime.PYTHON_3_11,
+            runtime: lambda.Runtime.PYTHON_3_13,
             index: 'tenant_setup.py',
             handler: 'handler',
             vpc: props.vpc,

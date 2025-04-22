@@ -51,7 +51,7 @@ export class ComputeConstruct extends Construct {
     // Data Functions
     this.chatCompletionHandler = new lambda_python.PythonFunction(this, 'ChatCompletionHandler', {
       entry: path.join(__dirname, '../../lambda/chat'),
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       index: 'chat_completion.py',
       handler: 'handler',
       vpc: props.vpc,
@@ -71,7 +71,7 @@ export class ComputeConstruct extends Construct {
     // Document Functions
     this.documentManagerHandler = new lambda_python.PythonFunction(this, 'DocumentManagerHandler', {
       entry: path.join(__dirname, '../../lambda/documents'),
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       index: 'document_manager.py',
       handler: 'handler',
       vpc: props.vpc,
@@ -90,7 +90,7 @@ export class ComputeConstruct extends Construct {
 
     const documentTrackingHandler = new lambda_python.PythonFunction(this, 'DocumentTrackingHandler', {
       entry: path.join(__dirname, '../../lambda/documents'),
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       index: 'document_tracker.py',
       handler: 'handler',
       role: lambdaRole,
@@ -105,7 +105,7 @@ export class ComputeConstruct extends Construct {
     // Utils Functions
     this.presignedUrlGenerator = new lambda_python.PythonFunction(this, 'PresignedUrlGenerator', {
       entry: path.join(__dirname, '../../lambda/upload'),
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       index: 'presigned_url.py',
       handler: 'handler',
       role: lambdaRole,
@@ -130,7 +130,7 @@ export class ComputeConstruct extends Construct {
     // Document Syncer Function
     this.documentSyncHandler = new lambda_python.PythonFunction(this, 'DocumentSyncHandler', {
       entry: path.join(__dirname, '../../lambda/documents'),
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       index: 'document_syncer.py',
       handler: 'handler',
       vpc: props.vpc,

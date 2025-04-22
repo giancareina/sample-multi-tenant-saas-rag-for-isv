@@ -23,7 +23,7 @@ export class AuthConstruct extends Construct {
     // Pre Token Generation Lambda Function
     this.preTokenGenerationHandler = new lambda_python.PythonFunction(this, 'PreTokenGenerationHandler', {
       entry: path.join(__dirname, '../../lambda/auth'),
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       index: 'cognito-pre-token-generation.py',
       handler: 'handler',
       timeout: cdk.Duration.seconds(30),
