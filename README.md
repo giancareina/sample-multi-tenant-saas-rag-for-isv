@@ -77,7 +77,13 @@ cd ../frontend
 touch .env
 ```
 
-Make and edit the `.env` file with the values obtained from the CDK deployment.
+Make and edit the `.env` file with the values obtained from the CDK deployment:
+
+```
+VITE_API_ENDPOINT=https://your-api-id.execute-api.region.amazonaws.com/prod
+VITE_APP_USER_POOL_ID=region_userpoolid
+VITE_APP_USER_CLIENT_ID=your-app-client-id
+```
 
 ```bash
 npm install
