@@ -28,6 +28,7 @@ The application is built using AWS CDK and consists of several layers:
 - Node.js 18.x or later
 - AWS CLI configured with appropriate credentials
 - AWS CDK installed (v2.170.0 or later)
+- Docker installed and running (latest version, required for Python Lambda function deployment)
 
 ### Installation
 
@@ -37,7 +38,7 @@ The application is built using AWS CDK and consists of several layers:
 npm install
 ```
 
-Note: We recommend using `npm install` instead of `npm ci` due to dependency issues with the `@aws/pdk` package. The `@aws/pdk` package is required for security checks but causes compatibility issues with `npm ci`.
+Note: We recommend using `npm install` instead of `npm ci` due to dependency issues with the `@aws/pdk` package. The `@aws/pdk` package is required for security checks but causes compatibility issues with `npm ci`. This is related to [aws/aws-pdk#902](https://github.com/aws/aws-pdk/issues/902) issue.
 
 2. Deploy the application:
 
@@ -70,22 +71,6 @@ infrastructure/
 └── package.json        # Project dependencies
 ```
 
-## Development
-
-To contribute to the project:
-
-1. Make your changes
-2. Run tests:
-
-```bash
-npm test
-```
-
-3. Deploy for testing:
-
-```bash
-npm run cdk deploy
-```
 
 ## Security Considerations
 

@@ -36,6 +36,7 @@ This solution consists of the following components:
 - [Node.js](https://nodejs.org/) (v18 or later)
 - [AWS CLI](https://aws.amazon.com/cli/) (latest version)
 - [AWS CDK](https://aws.amazon.com/cdk/) (v2.170.0 or later)
+- [Docker](https://www.docker.com/) (latest version, installed and running, required for Python Lambda deployment)
 - AWS account with appropriate IAM permissions
 
 ## Quick Start
