@@ -6,6 +6,7 @@ import { StorageConstruct } from './constructs/storage-construct';
 import { ComputeConstruct } from './constructs/compute-construct';
 import { ApiConstruct } from './constructs/api-construct';
 import { SetupConstruct } from './constructs/setup-construct';
+import { NagSuppressions } from 'cdk-nag';
 
 export class OpenSearchRagAppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -70,6 +71,122 @@ export class OpenSearchRagAppStack extends cdk.Stack {
 
     // Outputs
     this.outputValues(auth, api);
+
+    // CDK Nag suppressions
+    this.addNagSuppressions();
+  }
+
+  private addNagSuppressions(): void {
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/Auth/PreTokenGenerationHandler/ServiceRole/Resource',
+        '/OpenSearchRagAppStack/StorageConstruct/SetupLambdaRole/Resource',
+        '/OpenSearchRagAppStack/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource',
+        '/OpenSearchRagAppStack/Compute/LambdaExecutionRole/Resource',
+        '/OpenSearchRagAppStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
+        '/OpenSearchRagAppStack/Setup/TenantSetupProvider/framework-onEvent/ServiceRole/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-IAMNoManagedPolicies', reason: 'Lambda functions use AWSLambdaBasicExecutionRole which only provides minimal CloudWatch Logs permissions' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      ['/OpenSearchRagAppStack/Auth/UserPool/Resource'],
+      [
+        { id: 'AwsPrototyping-CognitoUserPoolAdvancedSecurityModeEnforced', reason: 'Advanced Security Mode is optional for a demo application' },
+        { id: 'AwsPrototyping-CognitoUserPoolMFA', reason: 'MFA is optional for this demo application' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/StorageConstruct/SetupLambdaRole/DefaultPolicy/Resource',
+        '/OpenSearchRagAppStack/Compute/LambdaExecutionRole/DefaultPolicy/Resource',
+        '/OpenSearchRagAppStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource',
+        '/OpenSearchRagAppStack/Setup/TenantSetupProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-IAMNoWildcardPermissions', reason: 'Required for Lambda functions to access various resources especially VPC' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/Setup/BedrockModelAccessRole/DefaultPolicy/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-IAMNoWildcardPermissions', reason: 'We are using wildcards for the model invocation to maintain flexibility in changing the models. Access is restricted to foundation models only.' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/StorageConstruct/SetupLambdaRole/DefaultPolicy/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-IAMPolicyNoStatementsWithFullAccess', reason: 'Granting es:* is necessary for setup operations on OpenSearch, but the resource is limited to specific domains' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/StorageConstruct/FileBucket/Resource',
+        '/OpenSearchRagAppStack/StorageConstruct/FileBucket/Policy/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-S3BucketLoggingEnabled', reason: 'Server access logging not required for this demo' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/StorageConstruct/OpenSearchDomainA/Resource',
+        '/OpenSearchRagAppStack/StorageConstruct/OpenSearchDomainB/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-OpenSearchAllowlistedIPs', reason: 'Access control handled through VPC and security groups' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      ['/OpenSearchRagAppStack/Api/RestApi/Resource'],
+      [
+        { id: 'AwsPrototyping-APIGWRequestValidation', reason: 'Request validation is optional for demo application' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      ['/OpenSearchRagAppStack/Api/RestApi/DeploymentStage.prod/Resource'],
+      [
+        { id: 'AwsPrototyping-APIGWAssociatedWithWAF', reason: 'WAF not required for this demo application' }
+      ]
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      this,
+      [
+        '/OpenSearchRagAppStack/Api/RestApi/Default/OPTIONS/Resource',
+        '/OpenSearchRagAppStack/Api/RestApi/Default/chat/OPTIONS/Resource',
+        '/OpenSearchRagAppStack/Api/RestApi/Default/chat/messages/OPTIONS/Resource',
+        '/OpenSearchRagAppStack/Api/RestApi/Default/documents/OPTIONS/Resource',
+        '/OpenSearchRagAppStack/Api/RestApi/Default/documents/upload-url/OPTIONS/Resource',
+        '/OpenSearchRagAppStack/Api/RestApi/Default/documents/sync/OPTIONS/Resource'
+      ],
+      [
+        { id: 'AwsPrototyping-CognitoUserPoolAPIGWAuthorizer', reason: 'The request finally reaches OpenSearch, and JWT verification is performed on OpenSearch.' }
+      ]
+    );
+    
   }
 
   private outputValues(

@@ -52,11 +52,12 @@ export class StorageConstruct extends Construct {
   }
 
   private createS3Bucket(): s3.Bucket {
-    return new s3.Bucket(this, 'FileBucket', {
+    const bucket = new s3.Bucket(this, 'FileBucket', {
       encryption: s3.BucketEncryption.S3_MANAGED,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true, // Add this line to enforce SSL/TLS for all requests
       cors: [
         {
           allowedHeaders: ['*'],
@@ -73,6 +74,8 @@ export class StorageConstruct extends Construct {
         }
       ]
     });
+    
+    return bucket;
   }
 
 

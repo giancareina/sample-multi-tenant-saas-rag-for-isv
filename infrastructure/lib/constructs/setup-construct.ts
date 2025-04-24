@@ -31,19 +31,19 @@ export class SetupConstruct extends Construct {
         const account = Stack.of(this).account;
 
         // Create IAM Role for Bedrock
-        const bedrockRole = new iam.Role(this, 'BedrockFullAccessRole', {
+        const bedrockRole = new iam.Role(this, 'BedrockModelAccessRole', {
             assumedBy: new iam.CompositePrincipal(
                 new iam.ServicePrincipal('opensearchservice.amazonaws.com'),
                 new iam.ServicePrincipal('lambda.amazonaws.com')
             ),
-            description: 'Role with full access to Bedrock API',
+            description: 'Role with limited access to Bedrock models',
         });
 
-        // Grant full access permissions to Bedrock
+        // Grant only InvokeModel permission to specific foundation models
         bedrockRole.addToPolicy(new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
-            actions: ['bedrock:*'],
-            resources: [`*`]
+            actions: ['bedrock:InvokeModel'],
+            resources: ['arn:aws:bedrock:*::foundation-model/*']
         }));
 
         // Check if demo user password is set
