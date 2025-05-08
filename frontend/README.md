@@ -121,6 +121,22 @@ To add new features:
 - Ensure that CORS is properly configured on the API Gateway
 - Check the browser console for error messages
 
+### Apple Silicon (M1/M2/M3) Mac Issues
+
+If you encounter the following error when running `npm run dev` on an Apple Silicon Mac:
+
+```
+Error: Cannot find module @rollup/rollup-darwin-arm64. npm has a bug related to optional dependencies...
+```
+
+Try installing the missing module directly:
+
+```bash
+npm install @rollup/rollup-darwin-arm64 --no-save
+```
+
+Then run `npm run dev` again. This issue is specific to Apple Silicon Macs due to architecture-specific native dependencies.
+
 ## License
 
 This project is licensed under the [MIT License](../LICENSE)
