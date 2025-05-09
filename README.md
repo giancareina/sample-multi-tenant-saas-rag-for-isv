@@ -61,8 +61,17 @@ Make and edit the `.env` file with the values based on your environment:
 
 ```
 CORS_ALLOWED_ORIGIN=http://localhost:5173
-DEMO_USER_PASSWORD=Password1234!
+DEMO_USER_PASSWORD=<YourCustomPassword>
 ```
+
+When setting your `<YourCustomPassword>`, please ensure it meets the following password policy requirements:
+- Minimum length of 12 characters
+- Contains at least 1 number
+- Contains at least 1 special character
+- Contains at least 1 uppercase letter
+- Contains at least 1 lowercase letter
+
+Example of a valid password: `SecureP@ssw0rd123`
 
 #### Amazon OpenSearch Service Service-Linked Role
 
