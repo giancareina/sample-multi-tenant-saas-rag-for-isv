@@ -53,8 +53,6 @@ When setting your `<YourCustomPassword>`, please ensure it meets the following p
 - Contains at least 1 uppercase letter
 - Contains at least 1 lowercase letter
 
-Example of a valid password: `SecureP@ssw0rd123`
-
 2. Install dependencies:
 
 ```bash

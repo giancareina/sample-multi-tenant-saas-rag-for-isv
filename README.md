@@ -71,8 +71,6 @@ When setting your `<YourCustomPassword>`, please ensure it meets the following p
 - Contains at least 1 uppercase letter
 - Contains at least 1 lowercase letter
 
-Example of a valid password: `SecureP@ssw0rd123`
-
 #### Amazon OpenSearch Service Service-Linked Role
 
 Before deploying, ensure that the Amazon OpenSearch Service service-linked role exists in your AWS account. If you have never created a VPC domain or direct query data source through the AWS Management Console, this role might not exist.
