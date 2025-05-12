@@ -46,8 +46,8 @@ This solution consists of the following components:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/jwt-opensearch.git
-cd jwt-opensearch
+git clone https://github.com/aws-samples/sample-multi-tenant-saas-rag-using-bedrock-and-amazon-opensearch-service-with-jwt.git
+cd sample-multi-tenant-saas-rag-using-bedrock-and-amazon-opensearch-service-with-jwt
 ```
 
 ### 2. Deploy the Backend
