@@ -4,6 +4,8 @@ This repository contains a sample implementation of a Retrieval Augmented Genera
 
 ## Architecture Overview
 
+![Architecture Diagram](./architecture-diagram.png)
+
 This solution consists of the following components:
 
 - **Frontend**: Single Page Application built with React + TypeScript
