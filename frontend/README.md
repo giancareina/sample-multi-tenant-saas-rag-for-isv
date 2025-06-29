@@ -12,7 +12,7 @@ This is the frontend application for the JWT OpenSearch RAG Solution. It's built
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or later)
+- [Node.js](https://nodejs.org/) (v22 LTS or later)
 - npm or yarn
 - Backend services deployed via the infrastructure CDK project
 

@@ -36,7 +36,7 @@ This solution consists of the following components:
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or later)
+- [Node.js](https://nodejs.org/) (v22 LTS or later)
 - [AWS CLI](https://aws.amazon.com/cli/) (latest version)
 - [AWS CDK](https://aws.amazon.com/cdk/) (v2.170.0 or later)
 - [Docker](https://www.docker.com/) (latest version, installed and running, required for Python Lambda deployment)
