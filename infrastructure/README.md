@@ -27,7 +27,7 @@ The application is built using AWS CDK and consists of several layers:
 
 - Node.js 18.x or later
 - AWS CLI configured with appropriate credentials
-- AWS CDK installed (v2.170.0 or later)
+- AWS CDK installed (v2.195.0 or later)
 - Docker installed and running (latest version, required for Python Lambda function deployment)
 - Amazon OpenSearch Service service-linked role (see below)
 
