@@ -38,7 +38,7 @@ This solution consists of the following components:
 
 - [Node.js](https://nodejs.org/) (v22 LTS or later)
 - [AWS CLI](https://aws.amazon.com/cli/) (latest version)
-- [AWS CDK](https://aws.amazon.com/cdk/) (v2.170.0 or later)
+- [AWS CDK](https://aws.amazon.com/cdk/) (v2.195.0 or later)
 - [Docker](https://www.docker.com/) (latest version, installed and running, required for Python Lambda deployment)
 - AWS account with appropriate IAM permissions
 - Amazon OpenSearch Service service-linked role (see note below)
