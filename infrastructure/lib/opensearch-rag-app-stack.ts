@@ -1,4 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { NetworkConstruct } from './constructs/network-construct';
 import { AuthConstruct } from './constructs/auth-construct';
@@ -55,6 +57,7 @@ export class OpenSearchRagAppStack extends cdk.Stack {
       documentManagerHandler: compute.documentManagerHandler,
       presignedUrlGenerator: compute.presignedUrlGenerator,
       documentSyncHandler: compute.documentSyncHandler,
+      consumptionMeteringHandler: compute.consumptionMeteringHandler
     });
     
 
@@ -68,6 +71,31 @@ export class OpenSearchRagAppStack extends cdk.Stack {
       openSearchDomainB: storage.openSearchDomainB,
       setupLambdaRole: storage.setupLambdaRole,
     });
+
+    const region = cdk.Stack.of(this).region;
+    const account = cdk.Stack.of(this).account;
+    
+    const bedrockConsumptionLogRole = new iam.Role(this, 'BedrockConsumptionLogRole', {
+      assumedBy: new iam.ServicePrincipal('bedrock.amazonaws.com')
+        .withConditions({
+          'StringEquals': {
+            'aws:SourceAccount': account
+          },
+          'ArnLike': {
+            'aws:SourceArn': `arn:aws:bedrock:${region}:${account}:*`
+          }
+        })
+    });
+
+    const bedrockConsumptionLogGroup = new logs.LogGroup(this, 'BedrockConsumptionLogGroup', {
+      retention: logs.RetentionDays.THREE_DAYS,
+    });
+
+    bedrockConsumptionLogRole.addToPolicy(new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+                resources: [`arn:aws:logs:${region}:${account}:log-group:${bedrockConsumptionLogGroup.logGroupName}:log-stream:aws/bedrock/modelinvocations`]
+            }));
 
     // Outputs
     this.outputValues(auth, api);

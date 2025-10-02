@@ -9,6 +9,8 @@ from jose.utils import base64url_decode
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
 from prompt_templates import RAG_PROMPT_TEMPLATE
+from datetime import datetime, timezone
+import uuid
 
 # Logger configuration
 logger = logging.getLogger()
@@ -21,6 +23,16 @@ REGION = os.getenv('AWS_REGION', 'us-west-2')
 TABLE_NAME = os.environ['TABLE_NAME']
 USER_POOL_ID = os.environ.get('USER_POOL_ID')
 USER_POOL_CLIENT_ID = os.environ.get('USER_POOL_CLIENT_ID')
+BEDROCK_PRICING = {
+    'anthropic.claude-3-5-sonnet-20241022-v2:0': {
+        'input_price_per_1k': 0.003,
+        'output_price_per_1k': 0.015
+    },
+    'amazon.titan-embed-text-v2:0': {
+        'input_price_per_1k': 0.00002,
+        'output_price_per_1k': 0.0
+    }
+}
 
 # AWS clients initialization
 dynamodb = boto3.client('dynamodb')
@@ -189,7 +201,7 @@ def get_aos_domain_and_index(tenant_id: str, sub: str) -> Tuple[str, str]:
         logger.warning(f"Error getting OpenSearch configuration: {str(e)}")
         raise
 
-def get_embedding(text: str) -> list:
+def get_embedding(text: str, tenant_id: str = None) -> list:
     """
     Get text embedding from Bedrock
     
@@ -208,7 +220,26 @@ def get_embedding(text: str) -> list:
             body=json.dumps({"inputText": text}),
             contentType="application/json"
         )
-        return json.loads(response['body'].read())['embedding']
+
+        # Parse response body
+        response_body = json.loads(response['body'].read())
+        
+        # Create a standardized response format for tracking
+        tracking_response = {
+            'usage': {
+                'inputTokens': response_body.get('inputTextTokenCount', 0),
+                'outputTokens': 0 
+            }
+        }
+        
+        track_bedrock_usage(
+            tenant_id=tenant_id,
+            model_id=EMBEDDING_MODEL_ID,
+            model_type="embedding",
+            response=tracking_response,
+        )
+
+        return response_body['embedding']
     except Exception as e:
         logger.warning(f"Error getting embedding: {str(e)}")
         raise
@@ -287,7 +318,7 @@ def vector_search(
         logger.warning(f"Vector search error: {str(e)}")
         return None, None
 
-def generate_response_with_converse(prompt: str, conversation_history: list = None) -> str:
+def generate_response_with_converse(prompt: str, tenant_id: str, conversation_history: list = None, ) -> str:
     """
     Generate response using Bedrock Converse API
     
@@ -324,6 +355,13 @@ def generate_response_with_converse(prompt: str, conversation_history: list = No
             modelId=MODEL_ID,
             messages=messages,
             inferenceConfig=inference_config
+        )
+
+        track_bedrock_usage(
+            tenant_id=tenant_id,
+            model_id=MODEL_ID,
+            model_type='chat',
+            response=response
         )
         
         try:
@@ -379,7 +417,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         sources = None
         
         # Get embeddings and search OpenSearch
-        embedded_query = get_embedding(query_text)
+        embedded_query = get_embedding(
+            text=query_text,
+            tenant_id=tenant_id,
+        )
         headers = {'Authorization': token, 'Content-Type': 'application/json'}
         context, sources = vector_search(index_name, opensearch_domain, embedded_query, headers, limit=5)
         
@@ -389,7 +430,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         prompt = RAG_PROMPT_TEMPLATE.format(context=context, query=query_text)
         
         # Call generate_response_with_converse with both prompt and conversation history
-        answer = generate_response_with_converse(prompt, conversation_history)
+        answer = generate_response_with_converse(prompt, tenant_id=tenant_id, conversation_history=conversation_history)
         
         response = create_response(200, answer, sources)
         
@@ -398,3 +439,189 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     except Exception as e:
         logger.warning(f"Error in handler: {str(e)}")
         return create_response(500, 'An internal error occurred. Please try again later.')
+
+
+def track_bedrock_usage(
+        tenant_id: str,
+        model_id: str,
+        model_type: str,
+        response: Dict[str, Any],
+    ) -> bool:
+        """
+        Track Bedrock API usage and store metrics.
+        
+        Args:
+            tenant_id: Tenant identifier
+            model_id: Bedrock model identifier
+            model_type: Type of model ('chat' or 'embedding')
+            response: Bedrock API response
+            
+        Returns:
+            bool: True if tracking successful, False otherwise
+        """
+        try:
+            # Extract token usage from response
+            input_tokens, output_tokens = extract_token_usage(response, model_type)
+            
+            # Create usage event
+            usage_event = create_usage_event(
+                tenant_id=tenant_id,
+                model_id=model_id,
+                model_type=model_type,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+            )
+            
+            # Store usage event
+            return store_usage_event(usage_event)
+            
+        except Exception as e:
+            logger.error(f"Error tracking Bedrock usage: {str(e)}")
+            return False
+
+def extract_token_usage(response: Dict[str, Any], model_type: str) -> Tuple[int, int]:
+        """
+        Extract token usage from Bedrock API response.
+        
+        Args:
+            response: Bedrock API response
+            model_type: Type of model ('chat' or 'embedding')
+            
+        Returns:
+            Tuple[int, int]: (input_tokens, output_tokens)
+        """
+        try:
+            usage = response.get('usage', {})
+            
+            if model_type == 'chat':
+                # For chat models using converse API
+                input_tokens = usage.get('inputTokens', 0)
+                output_tokens = usage.get('outputTokens', 0)
+            elif model_type == 'embedding':
+                # For embedding models
+                input_tokens = usage.get('inputTokens', 0)
+                output_tokens = 0  # Embedding models don't produce output tokens
+            else:
+                logger.warning(f"Unknown model type: {model_type}")
+                input_tokens = usage.get('inputTokens', 0)
+                output_tokens = usage.get('outputTokens', 0)
+            
+            logger.debug(f"Extracted tokens for {model_type}: input={input_tokens}, output={output_tokens}")
+            return input_tokens, output_tokens
+            
+        except Exception as e:
+            logger.error(f"Error extracting token usage: {str(e)}")
+            return 0, 0
+    
+def create_usage_event(
+        tenant_id: str,
+        model_id: str,
+        model_type: str,
+        input_tokens: int,
+        output_tokens: int,
+    ) -> Dict[str, Any]:
+        """
+        Create a usage event record.
+        
+        Args:
+            tenant_id: Tenant identifier
+            user_id: User identifier
+            model_id: Bedrock model identifier
+            model_type: Type of model ('chat' or 'embedding')
+            input_tokens: Number of input tokens
+            output_tokens: Number of output tokens
+            
+        Returns:
+            Dict: Usage event record
+        """
+        timestamp = datetime.now(timezone.utc)
+        event_id = str(uuid.uuid4())
+        
+        total_tokens = input_tokens + output_tokens
+        estimated_cost = calculate_cost(model_id, input_tokens, output_tokens)
+        
+        usage_event = {
+            'pk': f"tenant#{tenant_id}#usage#{timestamp.strftime('%Y-%m-%d')}#{timestamp.isoformat()}",
+            'sk': f"event#{event_id}",
+            'tenant_id': tenant_id,
+            'timestamp': timestamp.isoformat(),
+            'model_id': model_id,
+            'model_type': model_type,
+            'input_tokens': input_tokens,
+            'output_tokens': output_tokens,
+            'total_tokens': total_tokens,
+            'estimated_cost': estimated_cost
+        }
+        
+        logger.debug(f"Created usage event: {json.dumps(usage_event, default=str)}")
+        return usage_event
+
+def store_usage_event(usage_event: Dict[str, Any]) -> bool:
+        """
+        Store usage event in DynamoDB.
+        
+        Args:
+            usage_event: Usage event record
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Convert to DynamoDB format
+            item = {}
+            for key, value in usage_event.items():
+                if isinstance(value, str):
+                    item[key] = {'S': value}
+                elif isinstance(value, (int, float)):
+                    item[key] = {'N': str(value)}
+                elif isinstance(value, bool):
+                    item[key] = {'BOOL': value}
+                else:
+                    item[key] = {'S': str(value)}
+            
+            # Store in DynamoDB
+            dynamodb.put_item(
+                TableName=TABLE_NAME,
+                Item=item
+            )
+            
+            logger.info(f"Successfully stored usage event for tenant {usage_event['tenant_id']}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error storing usage event: {str(e)}")
+            return False
+
+def calculate_cost(model_id: str, input_tokens: int, output_tokens: int) -> float:
+        """
+        Calculate estimated cost for Bedrock model usage.
+        
+        Args:
+            model_id: Bedrock model identifier
+            input_tokens: Number of input tokens
+            output_tokens: Number of output tokens
+            
+        Returns:
+            float: Estimated cost in USD
+        """
+        try:
+            pricing = BEDROCK_PRICING.get(model_id)
+            if not pricing:
+                logger.warning(f"No pricing data found for model {model_id}, using default rates")
+                # Default pricing for unknown models
+                pricing = {
+                    'input_price_per_1k': 0.003,
+                    'output_price_per_1k': 0.015
+                }
+            
+            input_cost = (input_tokens / 1000) * pricing['input_price_per_1k']
+            output_cost = (output_tokens / 1000) * pricing['output_price_per_1k']
+            total_cost = input_cost + output_cost
+            logger.debug(f"Cost calculation for {model_id}: input={input_cost:.6f}, output={output_cost:.6f}, total={total_cost:.6f}")
+            
+            return round(total_cost, 10)
+            
+        except Exception as e:
+            logger.error(f"Error calculating cost for model {model_id}: {str(e)}")
+            return 0.0
+    
