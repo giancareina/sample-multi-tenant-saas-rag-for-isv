@@ -11,8 +11,8 @@ interface ApiConstructProps {
   documentManagerHandler: lambda.Function;
   presignedUrlGenerator: lambda.Function;
   documentSyncHandler: lambda.Function;
+  consumptionMeteringHandler: lambda.Function;
 }
-
 
 export class ApiConstruct extends Construct {
   public readonly restApi: apigw.RestApi;
@@ -168,6 +168,19 @@ export class ApiConstruct extends Construct {
           'method.response.header.Content-Type': true
       }
       }],
+      authorizer: authorizer,
+      authorizationType: apigw.AuthorizationType.COGNITO,
+    });
+
+    // Consumption metering endpoints
+    const consumptionResource = this.restApi.root.addResource('consumption');
+    
+    // Dashboard endpoint - GET /consumption/dashboard
+    const dashboardResource = consumptionResource.addResource('dashboard');
+    dashboardResource.addMethod('GET',
+      new apigw.LambdaIntegration(props.consumptionMeteringHandler, {
+        proxy: true,
+      }), {
       authorizer: authorizer,
       authorizationType: apigw.AuthorizationType.COGNITO,
     });

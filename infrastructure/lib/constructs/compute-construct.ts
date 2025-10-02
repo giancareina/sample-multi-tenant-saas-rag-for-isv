@@ -27,6 +27,7 @@ export class ComputeConstruct extends Construct {
   public readonly documentManagerHandler: lambda_python.PythonFunction;
   public readonly presignedUrlGenerator: lambda_python.PythonFunction;
   public readonly documentSyncHandler: lambda_python.PythonFunction;
+  public readonly consumptionMeteringHandler: lambda_python.PythonFunction;
   lambdaRole: iam.Role;
 
   constructor(scope: Construct, id: string, props: ComputeConstructProps) {
@@ -145,6 +146,26 @@ export class ComputeConstruct extends Construct {
       },
       timeout: cdk.Duration.minutes(5),  // Configure for long-running execution
       memorySize: 1024,
+    });
+
+    // Consumption Metering Function
+    this.consumptionMeteringHandler = new lambda_python.PythonFunction(this, 'ConsumptionMeteringHandler', {
+      entry: path.join(__dirname, '../../lambda/consumption'),
+      runtime: lambda.Runtime.PYTHON_3_13,
+      index: 'consumption_metering.py',
+      handler: 'lambda_handler',
+      vpc: props.vpc,
+      vpcSubnets: defaultVpcSubnets,
+      securityGroups: [props.lambdaSecurityGroup],
+      role: lambdaRole,
+      environment: {
+        'TABLE_NAME': props.mainTable.tableName,
+        'USER_POOL_ID': props.userPool.userPoolId,
+        'USER_POOL_CLIENT_ID': props.userPoolClient.userPoolClientId,
+        ALLOWED_ORIGINS: process.env.CORS_ALLOWED_ORIGIN ?? '*'
+      },
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 512,
     });
 
   }
