@@ -61,6 +61,18 @@ function Header() {
             >
               Documents
             </NavLink>
+            <NavLink 
+              to="/usage" 
+              className={({ isActive }) =>
+                `text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+                  isActive
+                    ? 'text-indigo-600 bg-indigo-50'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                }`
+              }
+            >
+              Usage
+            </NavLink>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -128,6 +140,18 @@ function Header() {
               >
                 Documents
               </NavLink>
+              <NavLink 
+              to="/usage" 
+              className={({ isActive }) =>
+                `text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+                  isActive
+                    ? 'text-indigo-600 bg-indigo-50'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                }`
+              }
+            >
+              Usage
+            </NavLink>
             </div>
           </div>
         )}

@@ -8,6 +8,7 @@ import { UploadContainer } from "./features/upload/UploadContainer";
 import { DocumentListContainer } from "./features/documents/DocumentListContainer";
 import Footer from "./components/Footer";
 import { ChatContainer } from "./features/chat/ChatContainer";
+import { UsageContainer } from "./features/usage/UsageContainer";
 import { configureAmplify } from './config/amplify';
 
 configureAmplify();
@@ -25,6 +26,7 @@ function App() {
                   <Route path="/" element={<ChatContainer />} />
                   <Route path="/upload" element={<UploadContainer />} />
                   <Route path="/doc" element={<DocumentListContainer />} />
+                  <Route path="/usage" element={<UsageContainer />} />
                 </Routes>
               </div>
             </main>
